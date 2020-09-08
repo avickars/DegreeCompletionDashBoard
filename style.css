@@ -1,0 +1,131 @@
+.navbar {
+  background-color:darkred;
+  border-color:black;
+  text-align-last:right;
+}
+.navbar-brand {
+color:white;
+font-size:25px;
+}
+
+.value-box{
+  color:darkred;
+  background-color:white;
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+#average-cs-undergraduate-degree-length{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+#average-undergraduate-degree-length-by-department{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+#row-10{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+
+#median-undergraduate-degree-length{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+#median-graduate-degree-length{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+#average-graduate-degree-length{
+  border-style:solid;
+  border-color:black;
+  border-width:2px;
+}
+
+
+
+
+
+.chart-title {  /* chart_title  */
+   font-size: 25px;
+   color:darkred;
+   font-weight:bold;
+}
+
+.Row {
+   border:solid;
+   border-color:black;
+}
+
+.container {
+  position: relative;
+  text-align: center;
+  color: white;
+}
+
+
+.navbar {
+  background-color:darkred;
+}
+
+.navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+    background-color: darkred;
+    color: white;
+}
+.navbar-inverse .navbar-nav > .active > a,
+.navbar-inverse .navbar-nav > .active > a:hover,
+.navbar-inverse .navbar-nav > .active > a:focus {
+  color: darkred;
+  background-color: white;
+}
+.navbar-inverse .navbar-toggle:hover,
+.navbar-inverse .navbar-toggle:focus {
+  background-color: darkred;
+}
+.navbar-inverse .navbar-collapse,
+.navbar-inverse .navbar-form {
+  border-color: darkred;
+}
+
+.textBox {
+  outline:5px black;
+}
+
+.valueBox {
+  font-size:5px;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {border-top-color: white;
+}
+
+
+/*Makes the colour red*/
+.nav-tabs-custom > .nav-tabs > li.active > a,
+.nav-tabs-custom > .nav-tabs > li.active:hover > a {
+  background-color: #fff;
+  color: darkred;
+  font-weight:bold;
+}
+
+/*Makes the not inuse tabs grey*/
+.nav-tabs-custom > .nav-tabs > li > a,
+.nav-tabs-custom > .nav-tabs > li > a:active {
+  color: #999;
+  font-weight: 300;
+  font-size: 16px;
+  border-radius: 0;
+  padding: 3px 10px 5px;
+  text-transform: none;
+}

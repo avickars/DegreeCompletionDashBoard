@@ -1,0 +1,354 @@
+---
+title: "Degree Completion Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    css: style.css
+    social: {id = "Analyses",href: "Analyses",align: right}
+    
+    
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(readxl)
+library(plotly)
+library(plyr)
+library(gridExtra)
+```
+
+```{r}
+dataUD <- read_csv("dataCSUG.csv")
+
+# Renaming Column
+dataUD <- dataUD %>% filter(basis_of_admission == "Secondary")
+
+# Converting character columns to factors
+dataUD <- dataUD %>%
+  mutate_if(sapply(dataUD, is.character), as.factor)
+
+dataUDMajor <- dataUD %>% group_by(comp_acad_yr,majors) %>%
+  dplyr::summarise('medianTerms' = median(terms_to_comp_elapsed), 
+                   'meanTerms' = round(mean(terms_to_comp_elapsed),1),
+                   'count' = n(),
+                   'medianYears' = round(median(terms_to_comp_elapsed/3),1),
+                   'meanYears' = round(mean(terms_to_comp_elapsed/3),1),
+                   'meanGPA'=round(mean(comp_gpa),2),
+                   'meanCoop'=round(mean(num_coop_terms),1),
+                   'medianGPA'=round(median(comp_gpa),2),
+                   'medianCoop'=round(median(num_coop_terms),1),
+                   'meanUnits'=round(mean(avg_units_per_term,1)))
+
+dataUDYear <- dataUD %>% group_by(comp_acad_yr) %>%
+  dplyr::summarise('medianTerms' = median(terms_to_comp_elapsed), 
+                   'meanTerms' = round(mean(terms_to_comp_elapsed),1),
+                   'count' = n(),
+                   'medianYears' = round(median(terms_to_comp_elapsed/3),1),
+                   'meanYears' = round(mean(terms_to_comp_elapsed/3),1),
+                   'meanGPA'=round(mean(comp_gpa),2),
+                   'meanCoop'=round(mean(num_coop_terms),1),
+                   'medianGPA'=round(median(comp_gpa),2),
+                   'medianCoop'=round(median(num_coop_terms),1),
+                   'meanUnits'=round(mean(avg_units_per_term,1)))
+
+
+
+dataUDTotal <- dataUD %>% group_by(majors) %>%
+  dplyr::summarise('medianTerms' = median(terms_to_comp_elapsed), 
+                   'meanTerms' = round(mean(terms_to_comp_elapsed),1),
+                   'count' = n(),
+                   'medianYears' = round(median(terms_to_comp_elapsed/3),1),
+                   'meanYears' = round(mean(terms_to_comp_elapsed/3),1),
+                   'meanGPA'=round(mean(comp_gpa),2),
+                   'meanCoop'=round(mean(num_coop_terms),1),
+                   'medianGPA'=round(median(comp_gpa),2),
+                   'medianCoop'=round(median(num_coop_terms),1),
+                   'meanUnits'=round(mean(avg_units_per_term,1)))
+
+```
+
+Undergraduate (Average)
+=====================================  
+
+
+Row
+-----------------------------------------------------------------------
+
+### Computing Science Major
+```{r,fig.height=100}
+
+avg <- dataUDTotal %>% filter(majors == "Computing Science Major") %>% select(meanYears)
+
+valueBox(paste(avg,"Years"))
+```
+
+### Buisiness and Computing Science Joint Major
+```{r}
+avg <- dataUDTotal %>% filter(majors == "Buisiness and Computing Science Joint Major") %>% select(meanYears)
+
+valueBox(paste(avg," Years",sep=""))
+```
+
+### Software Engineering Major
+```{r}
+avg <- dataUDTotal %>% filter(majors == "Software Engineering Major") %>% select(meanYears)
+
+valueBox(paste(avg," Years",sep=""))
+```
+
+### Computing Science and Mathematics Joint Major
+```{r}
+avg <- dataUDTotal %>% filter(majors == "Computing Science and Mathematics Joint Major") %>% select(meanYears)
+
+valueBox(paste(avg,"Years"))
+```
+
+Row
+-----------------------------------------------------------------------
+### Average CS Undergraduate Degree Length
+
+```{r}
+majors <- dataUDMajor$majors
+cols <- c("blue", "red", "black", "brown")
+
+majorColours <- tibble('majors' =levels(dataUDMajor$majors),cols)
+
+```
+
+
+```{r}
+fig <- plot_ly(dataUDYear,
+               x=~dataUDYear$comp_acad_yr,
+               y=~dataUDYear$meanYears,
+               type='scatter',
+               mode='lines+markers',
+               name='All',
+               hoverinfo='text',
+               text=paste('<b> All Programs </b>',
+                              '\n Average Number of Years: ', dataUDYear$meanYears,
+                              '\n Average Number of Semesters: ',dataUDYear$meanTerms,
+                              '\n Number of Graduates: ',dataUDYear$count,
+                              '\n Average Graduating GPA: ',dataUDYear$meanGPA,
+                              '\n Average Number of Co-op Semesters: ', dataUDYear$meanCoop,
+                              '\n Average Number of Units per Semester: ',dataUDYear$meanUnits,
+                              sep = '')
+               )
+
+for (i in levels(dataUDMajor$majors)) {
+    major1 <- dataUDMajor %>%
+      filter(majors == i  )
+    fig <- fig %>% add_trace(x=major1$comp_acad_yr,
+                             y=major1$meanYears,
+                             name = i,
+                             type = 'scatter',
+                             mode = 'lines+markers',
+                             visible="legendonly",
+                             hoverinfo='text',
+                             text=paste('<b>',i,'</b>',
+                              '\n Average Number of Years: ', major1$meanYears,
+                              '\n Average Number of Semesters: ',major1$meanTerms,
+                              '\n Number of Graduates: ',major1$count,
+                              '\n Average Graduating GPA: ',major1$meanGPA,
+                              '\n Average Number of Co-op Semesters: ', major1$meanCoop,
+                              '\n Median Number of Units per Semester: ', major1$meanUnits,
+                              sep = ''))
+    }
+
+fig <- fig %>% layout(xaxis = list(title = "Academic Year of Graduation", tickangle = 45),
+         yaxis = list(title = "Program Length (By Years)", range = c(0,10)), hoverlabel=list(bgcolor="white"),
+          title = list(text="Note: Hovering the mouse cursor over each line reveals additional information",x=0,size=1))
+
+fig
+
+```
+
+Undergraduate (Median)
+=====================================  
+
+Row
+-----------------------------------------------------------------------
+
+### Computing Science Major
+```{r,fig.height=100}
+
+med <- dataUDTotal %>% filter(majors == "Computing Science Major") %>% select(medianYears)
+
+valueBox(paste(med,"Years"))
+```
+
+### Buisiness and Computing Science Joint Major
+```{r}
+med <- dataUDTotal %>% filter(majors == "Buisiness and Computing Science Joint Major") %>% select(medianYears)
+
+valueBox(paste(med," Years"))
+```
+
+### Software Engineering Major
+```{r}
+med <- dataUDTotal %>% filter(majors == "Software Engineering Major") %>% select(medianYears)
+
+valueBox(paste(med," Years"))
+```
+
+### Computing Science and Mathematics Joint Major
+```{r}
+med <- dataUDTotal %>% filter(majors == "Computing Science and Mathematics Joint Major") %>% select(medianYears)
+
+valueBox(paste(med,"Years"))
+```
+
+
+Row
+-----------------------------------------------------------------------
+### Median Undergraduate Degree Length
+
+```{r}
+fig <- plot_ly(dataUDYear,
+               x=~dataUDYear$comp_acad_yr,
+               y=~dataUDYear$medianYears,
+               type='scatter',
+               mode='lines+markers',
+               name='All',
+               hoverinfo='text',
+               text=paste('<b> All Programs </b>',
+                              '\n Median Number of Years: ', dataUDYear$medianYears,
+                              '\n Median Number of Semesters: ',dataUDYear$medianTerms,
+                              '\n Number of Graduates: ',dataUDYear$count,
+                              '\n Median Graduating GPA: ',dataUDYear$medianGPA,
+                              '\n Median Number of Co-op Semesters: ', dataUDYear$medianCoop,
+                              sep = '')
+               )
+
+for (i in levels(dataUDMajor$majors)) {
+    major1 <- dataUDMajor %>%
+      filter(majors == i  )
+    cols = majorColours %>% filter(majors == i) %>% select(cols)
+    fig <- fig %>% add_trace(x=major1$comp_acad_yr,
+                             y=major1$medianYears,
+                             name = i,
+                             type = 'scatter',
+                             mode = 'lines+markers',
+                             visible="legendonly",
+                             hoverinfo='text',
+                             text=paste('<b>',i,'</b>',
+                              '\n Median Number of Years: ', major1$medianYears,
+                              '\n Meidan Number of Semesters: ',major1$medianTerms,
+                              '\n Number of Graduates: ',major1$count,
+                              '\n Median Graduating GPA: ',major1$medianGPA,
+                              '\n Median Number of Co-op Semesters: ', major1$medianCoop,
+                              sep = ''))
+    }
+
+fig <- fig %>% layout(xaxis = list(title = "Academic Year of Graduation", tickangle = 45),
+         yaxis = list(title = "Program Length (By Years)", range = c(0,10)), hoverlabel=list(bgcolor="white"),
+          title = list(text="Note: Hovering the mouse cursor over each line reveals additional information",x=0,size=1))
+
+fig
+
+```
+
+
+Additional Statistics
+=====================================
+
+Row {.tabset}
+-----------------------------------------------------------------------
+
+### CS Degree Completion Time Distribution
+
+```{r}
+dataUD <- read_csv("dataCSUG.csv")
+
+# Converting character columns to factors
+dataUD <- dataUD %>%
+  mutate_if(sapply(dataUD, is.character), as.factor)
+
+dataUD <- dataUD %>% mutate(years = round(terms_to_comp_elapsed/3,1))
+
+dataSecondary <- dataUD %>% filter(basis_of_admission == "Secondary")
+
+p2 <- ggplot(dataSecondary,aes(x=years)) +
+  geom_density(color = "red4", fill = "red4") +
+  labs(x="Time to Graduation by Years", y="Proportion of Graduates", title="Undergraduate CS Degree Completion Distribution") +
+  theme(plot.title = element_text(hjust = 0.5,colour = "red4",fac="bold",size=20),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+         panel.grid.major.y = element_line( size=.1, color="grey"),
+        axis.line.y = element_line(colour="white"),
+        axis.ticks.y = element_blank(),
+        axis.text = element_text(size=12),
+        text = element_text(family = "Calibri")) +
+  scale_y_continuous(expand = c(0,0))+
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12))
+
+mean <- dataSecondary %>% dplyr::summarise(mean(years))
+
+p2 <- p2 + geom_vline(xintercept =mean$`mean(years)`,size=0.5) + 
+  annotate(geom = "text", x=5.7,y=1.5,label=paste('Average & Median:',round(mean$`mean(years)`,1),"Years"),size=8)
+p2 <- ggplotly(p2, tooltip="text")
+p2
+
+
+
+
+
+```
+
+
+### Proportion of Undergraduate Student Types
+```{r}
+dataUD <- read_csv("dataCSUG.csv")
+
+# Converting character columns to factors
+dataUD <- dataUD %>%
+  mutate_if(sapply(dataUD, is.character), as.factor)
+
+dataGradTypes <- dataUD %>% group_by(comp_acad_yr,basis_of_admission) %>% tally()
+
+names(dataGradTypes) <- c("year","type","count")
+
+total <- dataGradTypes %>% group_by(year) %>% dplyr::summarise(total = sum(count))
+
+data <- dataGradTypes %>% spread(key=type,value = count)
+
+full <- inner_join(total,data)
+
+data <- full %>% mutate(`Post-SecondaryTotal` = round(`Post-Secondary`/total * 100), OtherTotal = round(Other/total*100), SecondaryTotal = round(Secondary/total*100))
+
+plot_ly(data, 
+        x = ~year, 
+        y = ~Secondary, 
+        type = 'bar', 
+        name = 'Secondary', 
+        hoverinfo='text',
+        hovertext = paste("Admitted From: <b>Secondary</b> \n",
+                     "Number of Graduates: ", data$Secondary,"\n",
+                     "Proportion of Graduates: ",data$SecondaryTotal,"%",sep=""),
+        text = paste(data$SecondaryTotal,"%",sep=""),
+        textposition = "auto",
+        marker=list(color='darkred')) %>%
+  add_trace(y=~`Post-Secondary`, 
+            name="Post-Secondary", 
+            hoverinfo='text',
+            hovertext = paste("Admitted From: <b>Post-Secondary</b> \n",
+                         "Number of Graduates: ", data$`Post-Secondary`,"\n",
+                         "Proportion of Graduates: ", data$`Post-SecondaryTotal`,"%",sep=""),
+            text = paste(data$`Post-SecondaryTotal`,"%",sep=""),
+            textposition = "auto",
+            marker=list(color='rgb(49,130,189)')) %>%
+  add_trace(y=~Other, 
+            name="Other",
+            hoverinfo='text',
+            hovertext = paste("Admitted From:<b> Other </b>\n",
+                     "Number of Graduates: ", data$Other, "\n",
+                      "Proportion of Graduates: ", data$OtherTotal,"%",sep=""),
+            text="",
+            marker=list(color="#000000")) %>%
+  layout(barmode='stack',xaxis = list(title = "Academic Year of Graduation"),
+                      yaxis = list(title = "Number of Graduates"),
+          title = list(text = '<b>Proportion Of Undergraduate Student Types by Year</b>', font = list(color = 'darkred',size=20)),
+         margin = list(t=50) , hoverlabel=list(bgcolor="white"))
+
+```
